@@ -36,7 +36,7 @@ const importSchema = z.object({
 router.post('/import', async (req, res, next) => {
   try {
     const data = importSchema.parse(req.body);
-    const product = await importDropshipProduct(data);
+    const product = await importDropshipProduct(data as any);
     res.status(201).json(product);
   } catch (e) { next(e); }
 });

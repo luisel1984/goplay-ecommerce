@@ -50,7 +50,7 @@ const productSchema = z.object({
 router.post('/products', async (req, res, next) => {
   try {
     const data = productSchema.parse(req.body);
-    const product = await prisma.product.create({ data: { ...data, publishedAt: new Date() } });
+    const product = await prisma.product.create({ data: { ...data, publishedAt: new Date() } as any });
     res.status(201).json(product);
   } catch (e) { next(e); }
 });

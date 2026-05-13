@@ -74,10 +74,10 @@ router.post('/order', async (req, res, next) => {
     let shippingAddressId: string | undefined;
     let billingAddressId: string | undefined;
     if (userId) {
-      const sa = await prisma.address.create({ data: { ...data.shippingAddress, userId, type: 'shipping' } });
+      const sa = await prisma.address.create({ data: { ...data.shippingAddress, userId, type: 'shipping' } as any });
       shippingAddressId = sa.id;
       if (data.billingAddress) {
-        const ba = await prisma.address.create({ data: { ...data.billingAddress, userId, type: 'billing' } });
+        const ba = await prisma.address.create({ data: { ...data.billingAddress, userId, type: 'billing' } as any });
         billingAddressId = ba.id;
       }
     }
