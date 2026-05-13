@@ -1,23 +1,23 @@
 @echo off
-title GoPlay - Fix definitivo build
+title GoPlay - Fix completo
 color 0A
-echo ============================================
-echo  Subiendo fix definitivo
-echo ============================================
-echo.
 cd /d C:\Users\User\goplay-ecommerce
 
-git add -A
-git status
+echo Subiendo todos los fixes...
+git add backend/Dockerfile
+git add backend/src/routes/product.routes.ts
+git add backend/src/services/stripe.service.ts
+git add backend/tsconfig.json
+git add backend/tsconfig.build.json
+git add backend/package.json
 
-git commit -m "fix: disable strict TypeScript in production build to pass compilation"
+git status
+git commit -m "fix: product.routes map callback, stripe apiVersion, standalone tsconfig"
 git push origin main
 
+echo.
 if %errorlevel% equ 0 (
-    echo.
-    echo ============================================
-    echo  SUBIDO - Railway redesplegara en 2 min
-    echo ============================================
+    echo SUBIDO EXITOSAMENTE - Revisa Railway en 3 min
 ) else (
     echo ERROR al subir
 )

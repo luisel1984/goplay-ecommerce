@@ -7,9 +7,12 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN printf '{\n  "compilerOptions": {\n    "target": "ES2022",\n    "module": "ESNext",\n    "moduleResolution": "Bundler",\n    "rootDir": "src",\n    "outDir": "dist",\n    "strict": false,\n    "skipLibCheck": true,\n    "esModuleInterop": true,\n    "resolveJsonModule": true,\n    "allowSyntheticDefaultImports": true,\n    "noImplicitAny": false,\n    "useDefineForClassFields": true,\n    "lib": ["ES2022"]\n  },\n  "include": ["src/**/*"]\n}' > tsconfig.build.json \
-    && npx prisma generate \
-    && npx tsc -p tsconfig.build.json
+RUN \
+    sed -i "s/items\.map(toPublic)/items.map(function(p){ return toPublic(p); })/g" src/routes/product.routes.ts && \
+    sed -i "s/2024-09-30\.acacia/2025-02-24.acacia/g" src/services/stripe.service.ts && \
+    printf '{"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Bundler","rootDir":"src","outDir":"dist","strict":false,"skipLibCheck":true,"esModuleInterop":true,"resolveJsonModule":true,"allowSyntheticDefaultImports":true,"noImplicitAny":false,"lib":["ES2022"]},"include":["src/**/*"]}' > tsconfig.build.json && \
+    npx prisma generate && \
+    npx tsc -p tsconfig.build.json
 
 FROM node:20-alpine
 WORKDIR /app
