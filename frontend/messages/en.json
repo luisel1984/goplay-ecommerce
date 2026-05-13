@@ -1,0 +1,87 @@
+{
+  "common": {
+    "siteName": "GoPlayElectronic", "tagline": "Your French tech store",
+    "loading": "Loading…", "error": "Something went wrong",
+    "addToCart": "Add to cart", "buyNow": "Buy now",
+    "outOfStock": "Out of stock", "inStock": "In stock",
+    "freeShipping": "Free shipping", "save": "Save", "cancel": "Cancel",
+    "search": "Search…", "categories": "Categories", "brands": "Brands",
+    "all": "All", "back": "Back", "continue": "Continue"
+  },
+  "nav": {
+    "home": "Home", "products": "Products", "cart": "Cart",
+    "wishlist": "Wishlist", "account": "Account", "orders": "My orders",
+    "login": "Login", "signup": "Sign up", "logout": "Logout"
+  },
+  "home": {
+    "heroTitle": "Tech at fair prices, delivered across France",
+    "heroSubtitle": "Audio · Mobile · Tools · Verified brands · Colissimo & Mondial Relay",
+    "heroCta": "Browse catalog", "featuredProducts": "Featured products",
+    "newArrivals": "New arrivals", "shopByCategory": "Shop by category",
+    "trustTitle": "Why GoPlayElectronic?",
+    "trustShipping": "Fast shipping", "trustShippingDesc": "Colissimo 2-3d, Mondial Relay 3-5d",
+    "trustReturns": "Free returns 14 days", "trustReturnsDesc": "EU consumer rights",
+    "trustSecure": "Secure payment", "trustSecureDesc": "Stripe · Card · Apple Pay · SEPA"
+  },
+  "product": {
+    "description": "Description", "specifications": "Specifications",
+    "reviews": "Reviews", "deliveryEstimate": "Estimated delivery",
+    "addedToCart": "Added to cart", "youMayAlsoLike": "You may also like",
+    "vatIncluded": "VAT included", "compareAt": "Recommended price"
+  },
+  "cart": {
+    "title": "My cart", "empty": "Your cart is empty",
+    "emptyDesc": "Browse products and find your favorites.",
+    "shopNow": "View products", "subtotal": "Subtotal",
+    "shipping": "Shipping", "discount": "Discount", "total": "Total",
+    "couponCode": "Coupon code", "applyCoupon": "Apply", "removeCoupon": "Remove",
+    "checkout": "Checkout", "remove": "Remove", "continueShopping": "Continue shopping"
+  },
+  "checkout": {
+    "title": "Complete order", "contact": "Contact", "email": "Email address",
+    "shippingAddress": "Shipping address", "billingAddress": "Billing address",
+    "sameAsShipping": "Same as shipping", "fullName": "Full name",
+    "address": "Address", "addressLine2": "Apt, suite (optional)",
+    "postalCode": "Postal code", "city": "City", "country": "Country",
+    "phone": "Phone", "shippingMethod": "Shipping method",
+    "selectRelayPoint": "Pick a relay point", "payment": "Payment",
+    "placeOrder": "Pay now",
+    "agreeTerms": "I agree to the terms and privacy policy",
+    "secureCheckout": "100% secure payment via Stripe"
+  },
+  "account": {
+    "title": "My account", "personalInfo": "Personal information",
+    "myOrders": "My orders", "addresses": "My addresses",
+    "rgpd": "My data (GDPR)", "downloadInvoice": "Download invoice",
+    "trackOrder": "Track order"
+  },
+  "auth": {
+    "loginTitle": "Sign in", "signupTitle": "Create account",
+    "email": "Email", "password": "Password",
+    "firstName": "First name", "lastName": "Last name",
+    "confirmPassword": "Confirm password", "forgotPassword": "Forgot password?",
+    "noAccount": "No account yet?", "alreadyAccount": "Already have an account?",
+    "createAccount": "Create account",
+    "rgpdAccept": "I accept the privacy policy in accordance with GDPR",
+    "marketingOptIn": "I want to receive marketing offers by email"
+  },
+  "rgpd": {
+    "cookieTitle": "🍪 Cookie preferences",
+    "cookieDesc": "We use cookies to improve your experience, measure audience and personalize ads.",
+    "acceptAll": "Accept all", "rejectAll": "Reject all",
+    "customize": "Customize", "necessary": "Necessary",
+    "necessaryDesc": "Essential for the site to work",
+    "analytics": "Analytics", "analyticsDesc": "Anonymous visit statistics",
+    "marketing": "Marketing", "marketingDesc": "Personalized ads and retargeting",
+    "savePrefs": "Save my choices", "moreInfo": "More info"
+  },
+  "footer": {
+    "company": "Company", "about": "About", "contact": "Contact", "blog": "Blog",
+    "help": "Help", "shipping": "Shipping", "returns": "Returns", "faq": "FAQ",
+    "legal": "Legal", "cgv": "Terms of sale", "mentions": "Legal notice",
+    "privacy": "Privacy policy", "cookies": "Cookie settings",
+    "mediator": "Consumer mediator", "newsletter": "Newsletter",
+    "newsletterDesc": "Exclusive offers and news", "subscribe": "Subscribe",
+    "rights": "All rights reserved"
+  }
+}

@@ -1,0 +1,441 @@
+// ═══════════════════════════════════════════════════════════════
+// GoPlayCommerce — Prisma Schema (PostgreSQL)
+// ═══════════════════════════════════════════════════════════════
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ─────────────────────────────────────────────────────
+enum UserRole {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  locale        String    @default("fr")
+  role          UserRole  @default(CUSTOMER)
+  // RGPD
+  marketingOptIn Boolean  @default(false)
+  rgpdConsentAt  DateTime?
+  deletedAt      DateTime?
+
+  addresses     Address[]
+  orders        Order[]
+  cart          Cart?
+  wishlist      WishlistItem[]
+  reviews       Review[]
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  company    String?
+  line1      String
+  line2      String?
+  postalCode String
+  city       String
+  region     String?
+  country    String  @default("FR")
+  phone      String?
+  isDefault  Boolean @default(false)
+  type       String  @default("shipping") // shipping | billing
+
+  ordersShipping Order[] @relation("ShippingAddress")
+  ordersBilling  Order[] @relation("BillingAddress")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── CATALOG ───────────────────────────────────────────────────
+model Category {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  name        String
+  nameEn      String?
+  description String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  imageUrl    String?
+  sortOrder   Int        @default(0)
+  active      Boolean    @default(true)
+  products    Product[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum ProductSource {
+  MANUAL
+  ALIEXPRESS
+  CJDROPSHIPPING
+  ALIBABA
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  sku           String        @unique
+  name          String
+  nameEn        String?
+  description   String        @db.Text
+  descriptionEn String?       @db.Text
+  brand         String?
+  categoryId    String?
+  category      Category?     @relation(fields: [categoryId], references: [id])
+
+  // Pricing en céntimos para precisión
+  costCents          Int
+  priceCents         Int
+  compareAtCents     Int?    // Precio antes de descuento
+  vatRate            Decimal @default(20.0) @db.Decimal(4, 2) // 20% por defecto FR
+
+  // Inventario
+  stock              Int     @default(0)
+  trackInventory     Boolean @default(true)
+  lowStockThreshold  Int     @default(5)
+
+  // Logística
+  weightGrams        Int?
+  widthMm            Int?
+  heightMm           Int?
+  lengthMm           Int?
+  hsCode             String? // Código aduanero
+
+  // SEO
+  metaTitle          String?
+  metaDescription    String?
+
+  // Dropshipping
+  source             ProductSource @default(MANUAL)
+  externalId         String?       // ID en proveedor
+  externalUrl        String?
+  supplierId         String?
+  supplier           Supplier?     @relation(fields: [supplierId], references: [id])
+  lastSyncedAt       DateTime?
+
+  // Estado
+  active             Boolean       @default(true)
+  publishedAt        DateTime?
+
+  images             ProductImage[]
+  variants           ProductVariant[]
+  reviews            Review[]
+  cartItems          CartItem[]
+  wishlistItems      WishlistItem[]
+  orderItems         OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId, active])
+  @@index([source, externalId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku           String   @unique
+  name          String   // ej. "Talla M / Negro"
+  attributes    Json     // {size:'M', color:'black'}
+  priceCents    Int?     // Sobrescribe precio del producto
+  stock         Int      @default(0)
+  imageUrl      String?
+  externalId    String?
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+
+  @@index([productId])
+}
+
+// ─── DROPSHIPPING ──────────────────────────────────────────────
+model Supplier {
+  id           String        @id @default(cuid())
+  name         String
+  source       ProductSource
+  apiKey       String?
+  apiSecret    String?
+  contactEmail String?
+  active       Boolean       @default(true)
+  products     Product[]
+  createdAt    DateTime      @default(now())
+}
+
+model SupplierOrder {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  supplierId      String
+  externalOrderId String?
+  status          String   // pending | placed | shipped | delivered | failed
+  trackingNumber  String?
+  carrier         String?
+  totalCents      Int
+  rawResponse     Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+// ─── CART & WISHLIST ───────────────────────────────────────────
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?    @unique // para invitados
+  items     CartItem[]
+  couponId  String?
+  coupon    Coupon?    @relation(fields: [couponId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String          @id @default(cuid())
+  cartId    String
+  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id])
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity  Int             @default(1)
+  priceCents Int            // Snapshot al momento de añadir
+  createdAt DateTime        @default(now())
+
+  @@unique([cartId, productId, variantId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+// ─── ORDERS ────────────────────────────────────────────────────
+enum OrderStatus {
+  PENDING       // Esperando pago
+  PAID          // Pago confirmado
+  PREPARING     // En preparación
+  SHIPPED       // Enviado
+  DELIVERED     // Entregado
+  CANCELLED     // Cancelado
+  REFUNDED      // Reembolsado
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Order {
+  id                 String        @id @default(cuid())
+  number             String        @unique // ej. "FR-2026-00001"
+  userId             String?
+  user               User?         @relation(fields: [userId], references: [id])
+  email              String        // Snapshot por si invitado
+
+  status             OrderStatus   @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING)
+
+  // Importes en céntimos
+  subtotalCents      Int
+  discountCents      Int           @default(0)
+  shippingCents      Int           @default(0)
+  vatCents           Int           @default(0)
+  totalCents         Int
+  creditCents        Int           @default(0) // Crédito tienda aplicado
+
+  currency           String        @default("EUR")
+
+  // Envío
+  shippingAddressId  String?
+  shippingAddress    Address?      @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddressId   String?
+  billingAddress     Address?      @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  shippingMethod     String?       // colissimo | mondial-relay | chronopost
+  shippingPointId    String?       // Para Mondial Relay
+  trackingNumber     String?
+  trackingUrl        String?
+  carrier            String?
+
+  // Cupón / descuento
+  couponId           String?
+  coupon             Coupon?       @relation(fields: [couponId], references: [id])
+
+  // Stripe
+  stripePaymentIntentId String?    @unique
+  stripeChargeId        String?
+  paymentMethod         String?
+
+  // Facturación
+  invoiceNumber      String?       @unique
+  invoiceUrl         String?
+  invoiceIssuedAt    DateTime?
+
+  // RGPD
+  ipAddress          String?
+  userAgent          String?
+
+  notes              String?
+  items              OrderItem[]
+  events             OrderEvent[]
+  refunds            Refund[]
+  supplierOrders     SupplierOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           String           @id @default(cuid())
+  orderId      String
+  order        Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product          @relation(fields: [productId], references: [id])
+  variantId    String?
+  variant      ProductVariant?  @relation(fields: [variantId], references: [id])
+  name         String           // snapshot
+  sku          String           // snapshot
+  quantity     Int
+  unitPriceCents Int
+  vatRate      Decimal          @db.Decimal(4, 2)
+  vatCents     Int
+  totalCents   Int
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String   // status_change | payment | refund | shipped | note
+  message   String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Refund {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  amountCents     Int
+  reason          String?
+  stripeRefundId  String?  @unique
+  status          String   // pending | succeeded | failed
+  createdAt       DateTime @default(now())
+}
+
+// ─── COUPONS ───────────────────────────────────────────────────
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  type          DiscountType
+  valueCents    Int          // Si PERCENT, valor 0-100. Si FIXED, en céntimos.
+  minAmountCents Int?        // Pedido mínimo
+  maxUses       Int?
+  usesCount     Int          @default(0)
+  validFrom     DateTime?
+  validUntil    DateTime?
+  active        Boolean      @default(true)
+  carts         Cart[]
+  orders        Order[]
+  createdAt     DateTime     @default(now())
+}
+
+// ─── REVIEWS ───────────────────────────────────────────────────
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int      // 1-5
+  title     String?
+  comment   String?  @db.Text
+  approved  Boolean  @default(false)
+  verified  Boolean  @default(false) // verified purchase
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+// ─── ANALYTICS / AUDIT ─────────────────────────────────────────
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // login | order_created | refund | rgpd_export | …
+  entity    String?
+  entityId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}
