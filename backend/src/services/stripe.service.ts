@@ -4,7 +4,7 @@ import { prisma } from '../config/prisma.js';
 import { applicableVatRate, ttcToHt } from '../lib/vat.js';
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-09-30.acacia',
+  apiVersion: '2025-02-24.acacia',
   appInfo: { name: 'GoPlayCommerce', version: '1.0.0' },
 });
 
