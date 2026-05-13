@@ -7,7 +7,9 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npx tsc -p tsconfig.build.json
+RUN echo '{"extends":"./tsconfig.json","exclude":["prisma","node_modules","dist"]}' > tsconfig.build.json \
+    && npx prisma generate \
+    && npx tsc -p tsconfig.build.json
 
 FROM node:20-alpine
 WORKDIR /app
