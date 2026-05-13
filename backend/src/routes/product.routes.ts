@@ -47,7 +47,7 @@ router.get('/', async (req, res, next) => {
     ]);
 
     res.json({
-      items: items.map(toPublic),
+      items: items.map(p => toPublic(p)),
       page: q.page, limit: q.limit, total, pages: Math.ceil(total / q.limit),
     });
   } catch (e) { next(e); }

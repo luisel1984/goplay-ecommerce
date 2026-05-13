@@ -7,7 +7,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN echo '{"extends":"./tsconfig.json","compilerOptions":{"strict":false,"skipLibCheck":true,"noImplicitAny":false},"exclude":["prisma","node_modules","dist"]}' > tsconfig.build.json \
+RUN printf '{\n  "compilerOptions": {\n    "target": "ES2022",\n    "module": "ESNext",\n    "moduleResolution": "Bundler",\n    "rootDir": "src",\n    "outDir": "dist",\n    "strict": false,\n    "skipLibCheck": true,\n    "esModuleInterop": true,\n    "resolveJsonModule": true,\n    "allowSyntheticDefaultImports": true,\n    "noImplicitAny": false,\n    "useDefineForClassFields": true,\n    "lib": ["ES2022"]\n  },\n  "include": ["src/**/*"]\n}' > tsconfig.build.json \
     && npx prisma generate \
     && npx tsc -p tsconfig.build.json
 
